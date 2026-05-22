@@ -96,7 +96,7 @@ glpi-task-netdiscovery and glpi-task-netinventory
 %package task-deploy
 Summary:    Software deployment support for GLPI agent
 Requires:   %{name} = %{version}-%{release}
-Requires:   perl(Crypt::Ed25519)
+Recommends: perl(Crypt::Ed25519)
 
 %description task-deploy
 This package provides software deployment support for GLPI agent
@@ -199,9 +199,12 @@ install -m 644 -D  %{name}.conf                 %{buildroot}%{_sysconfdir}/sysco
 install -m 755 -Dp contrib/unix/%{name}.cron    %{buildroot}%{_sysconfdir}/cron.hourly/%{name}
 install -m 644 -D  contrib/unix/%{name}.service %{buildroot}%{_unitdir}/%{name}.service
 
+mkdir -p %{buildroot}%{_datadir}/%{name}/tools
+install -m 755 tools/glpi-sign-package.pl %{buildroot}%{_datadir}/%{name}/tools/
+
 
 %check
-#make test
+prove t/tasks/deploy/signature.t
 
 
 %files
@@ -244,7 +247,6 @@ install -m 644 -D  contrib/unix/%{name}.service %{buildroot}%{_unitdir}/%{name}.
 %{_datadir}/%{name}/lib/GLPI/Agent.pm
 %{_datadir}/%{name}/lib/GLPI/Agent/Config.pm
 %{_datadir}/%{name}/lib/setup.pm
-%{_datadir}/%{name}/lib/GLPI/Agent/Daemon.pm
 %{_datadir}/%{name}/lib/GLPI/Agent/Event*
 %{_datadir}/%{name}/lib/GLPI/Agent/HTTP/Server.pm
 %{_datadir}/%{name}/lib/GLPI/Agent/HTTP/Client*
@@ -332,6 +334,7 @@ fi
 %{_datadir}/%{name}/lib/GLPI/Agent/Task/Deploy.pm
 %{_datadir}/%{name}/lib/GLPI/Agent/Task/Deploy
 %{_datadir}/%{name}/lib/GLPI/Agent/Tools/Archive.pm
+%{_datadir}/%{name}/tools/glpi-sign-package.pl
 
 %files task-wakeonlan
 %{_bindir}/glpi-wakeonlan

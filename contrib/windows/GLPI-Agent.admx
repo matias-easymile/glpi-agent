@@ -87,10 +87,10 @@
         <text id="GLPI_deploy-public-key" key="SOFTWARE\GLPI-Agent" valueName="deploy-public-key" />
         <boolean id="GLPI_secure-extraction" key="SOFTWARE\GLPI-Agent" valueName="secure-extraction">
           <trueValue>
-            <string>yes</string>
+            <string>1</string>
           </trueValue>
           <falseValue>
-            <string>no</string>
+            <string>0</string>
           </falseValue>
         </boolean>
       </elements>
@@ -171,10 +171,10 @@
         <text id="GLPI_deploy-public-key" key="SOFTWARE\Wow6432Node\GLPI-Agent" valueName="deploy-public-key" />
         <boolean id="GLPI_secure-extraction" key="SOFTWARE\Wow6432Node\GLPI-Agent" valueName="secure-extraction">
           <trueValue>
-            <string>yes</string>
+            <string>1</string>
           </trueValue>
           <falseValue>
-            <string>no</string>
+            <string>0</string>
           </falseValue>
         </boolean>
       </elements>

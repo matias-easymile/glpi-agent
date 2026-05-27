@@ -123,7 +123,7 @@ sub prepare {
                     unlink($tarballpath);
                 }
             } else {
-                my $is_secure = $self->{config} && $self->{config}->{'secure-extraction'} && $self->{config}->{'secure-extraction'} eq 'yes';
+                my $is_secure = $self->{config} && $self->{config}->{'secure-extraction'} && $self->{config}->{'secure-extraction'} ne '0' && $self->{config}->{'secure-extraction'} ne 'no';
                 my $archive = GLPI::Agent::Tools::Archive->new(
                     archive => $finalFilePath,
                     secure  => $is_secure,

@@ -817,6 +817,9 @@ jobs:
   publish-release:
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
 
     if: ${{ !cancelled() && needs.setup-release.outputs.create-release == 'yes' && needs.windows-packaging.result == 'success' && needs.macosx-packaging.result == 'success' && needs.linux-debian-packaging.result == 'success' && needs.linux-rpm-packaging.result == 'success' && needs.linux-installer.result == 'success' && needs.sources.result == 'success' }}
     needs: [ setup-release, windows-packaging, macosx-packaging, linux-snap-packaging, linux-debian-packaging, linux-rpm-packaging, linux-installer, linux-appimage, sources ]
@@ -863,6 +866,26 @@ jobs:
       env:
         VERSION: ${{ needs.setup-release.outputs.version }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Require successful tests for this commit
+      timeout-minutes: 60
+      run: |
+        for attempt in $(seq 1 120); do
+          runs=$(gh run list --workflow glpi-agent-ci.yml --commit "$GITHUB_SHA" \
+              --event push --limit 20 --json status,conclusion)
+          if jq -e 'any(.[]; .conclusion == "success")' <<<"$runs" >/dev/null; then
+            exit 0
+          fi
+          if jq -e 'length > 0 and all(.[]; .status == "completed")' <<<"$runs" >/dev/null; then
+            echo '::error::Tests failed for the release commit; keeping the release in draft'
+            exit 1
+          fi
+          sleep 30
+        done
+        echo '::error::Timed out waiting for release tests; keeping the release in draft'
+        exit 1
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Publish release
       id: publish-release
       run: |

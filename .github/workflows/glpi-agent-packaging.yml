@@ -542,10 +542,10 @@ jobs:
       id: debbuild
       run: |
         echo "debpath=$(dirname $PWD)" >>$GITHUB_OUTPUT
-        # make -gitXXXXXXXX release when not tagged
-        if [ -z "${VERSION##*-*}" ]; then
-            tools/make-release.sh --no-git $VERSION
-        fi
+        # Distributor suffixes must update Debian metadata even on tagged builds.
+        case "$VERSION" in
+          *-*|*_*) tools/make-release.sh --no-git --no-ids-update "$VERSION" ;;
+        esac
         dpkg-buildpackage -d -b --no-sign
       shell: bash
       env:
@@ -671,6 +671,12 @@ jobs:
         contrib/unix/make-linux-installer.sh --version $VERSION --rpm *.rpm \
             contrib/unix/glpi-agent.init.redhat \
             --deb *.deb
+        deb_version=${VERSION//_/+}
+        [[ "$deb_version" == *-* ]] || deb_version="$deb_version-1"
+        perl "glpi-agent-$VERSION-linux-installer.pl" --list > installer-contents.txt
+        for package in glpi-agent glpi-agent-task-deploy glpi-agent-task-collect; do
+          grep -F "pkg/deb/${package}_${deb_version}_all.deb" installer-contents.txt
+        done
         ls -l
         shopt -s nullglob
         sha1sum *.rpm *.deb *.snap *.pl

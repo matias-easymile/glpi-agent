@@ -641,7 +641,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: ${{ needs.setup-release.outputs.build == 'yes' }}
+    if: ${{ !cancelled() && needs.setup-release.outputs.build == 'yes' && needs.linux-debian-packaging.result == 'success' && needs.linux-rpm-packaging.result == 'success' }}
     needs: [ setup-release, linux-snap-packaging, linux-debian-packaging, linux-rpm-packaging ]
 
     steps:
@@ -654,24 +654,31 @@ jobs:
       with:
         name: Debian-Build
     - uses: actions/download-artifact@v8
+      if: ${{ needs.linux-snap-packaging.result == 'success' }}
       with:
         name: Snap-Build
     - name: Build installer
       id: installer-build
       run: |
-        contrib/unix/make-linux-installer.sh --version $VERSION --rpm *.rpm \
-            contrib/unix/glpi-agent.init.redhat \
-            --deb *.deb --snap *.snap
-        mv glpi-agent-$VERSION-linux-installer.pl glpi-agent-$VERSION-with-snap-linux-installer.pl
+        if [[ "$SNAP_RESULT" == success ]]; then
+          contrib/unix/make-linux-installer.sh --version $VERSION --rpm *.rpm \
+              contrib/unix/glpi-agent.init.redhat \
+              --deb *.deb --snap *.snap
+          mv glpi-agent-$VERSION-linux-installer.pl glpi-agent-$VERSION-with-snap-linux-installer.pl
+        else
+          echo '::warning::Snap build unavailable; producing the RPM/DEB installer only'
+        fi
         contrib/unix/make-linux-installer.sh --version $VERSION --rpm *.rpm \
             contrib/unix/glpi-agent.init.redhat \
             --deb *.deb
         ls -l
+        shopt -s nullglob
         sha1sum *.rpm *.deb *.snap *.pl
         sha256sum *.rpm *.deb *.snap *.pl
       shell: bash
       env:
         VERSION: ${{ needs.setup-release.outputs.version }}
+        SNAP_RESULT: ${{ needs.linux-snap-packaging.result }}
     - name: Upload built installer artifacts
       uses: actions/upload-artifact@v7
       with:
@@ -811,8 +818,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: ${{ needs.setup-release.outputs.create-release == 'yes' }}
-    needs: [ setup-release, windows-packaging, macosx-packaging, linux-snap-packaging, linux-debian-packaging, linux-rpm-packaging, linux-installer, sources ]
+    if: ${{ !cancelled() && needs.setup-release.outputs.create-release == 'yes' && needs.windows-packaging.result == 'success' && needs.macosx-packaging.result == 'success' && needs.linux-debian-packaging.result == 'success' && needs.linux-rpm-packaging.result == 'success' && needs.linux-installer.result == 'success' && needs.sources.result == 'success' }}
+    needs: [ setup-release, windows-packaging, macosx-packaging, linux-snap-packaging, linux-debian-packaging, linux-rpm-packaging, linux-installer, linux-appimage, sources ]
 
     steps:
     - uses: actions/checkout@v6
@@ -827,9 +834,11 @@ jobs:
       with:
         name: Debian-Build
     - uses: actions/download-artifact@v8
+      if: ${{ needs.linux-snap-packaging.result == 'success' }}
       with:
         name: Snap-Build
     - uses: actions/download-artifact@v8
+      if: ${{ needs.linux-appimage.result == 'success' }}
       with:
         name: Linux-AppImage-Build
     - uses: actions/download-artifact@v8

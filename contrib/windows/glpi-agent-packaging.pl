@@ -59,7 +59,7 @@ if ($ENV{GITHUB_REF} && $ENV{GITHUB_REF} =~ m|refs/tags/(.+)$|) {
     $versiontag = '';
     if ($revision) {
         $version = $github_tag;
-        if ($github_tag =~ /^$major\.$minor\.$revision-(.*)$/) {
+        if ($github_tag =~ /^$major\.$minor\.$revision[-_](.*)$/) {
             $versiontag = $1;
         } elsif ($github_tag ne "$major.$minor.$revision") {
             $version = "$major.$minor.$revision-$github_tag";
@@ -67,7 +67,7 @@ if ($ENV{GITHUB_REF} && $ENV{GITHUB_REF} =~ m|refs/tags/(.+)$|) {
         }
     } else {
         $version = $github_tag;
-        if ($github_tag =~ /^$major\.$minor-(.*)$/) {
+        if ($github_tag =~ /^$major\.$minor[-_](.*)$/) {
             $versiontag = $1;
         } elsif ($github_tag ne "$major.$minor") {
             $version = "$major.$minor-$github_tag";

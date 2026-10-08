@@ -564,5 +564,7 @@ foreach my $test (keys(%distros)) {
     ok((!defined($distro->{_release}) && !defined($distros{$test}->{release})) || $distro->{_release} eq $distros{$test}->{release}, "$test distro release matches: found >".($distro->{_release}//'>undef<')."<");
 }
 
+require DebDistro;
+
 is(DebDistro::_deb_file_version('1.20_EM-1'), '1.20+EM-1', 'Debian archive filenames use the normalized package version');
 is(DebDistro::_deb_file_version('1.20-1'), '1.20-1', 'Debian archive filenames preserve standard package versions');
